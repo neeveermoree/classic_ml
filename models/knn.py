@@ -34,7 +34,9 @@ class KNN:
         # Select top neighbors
         top_neighbors = sorted_args[:, :self._neighbors_num]
 
-        return top_neighbors
+        # Select top distance
+        top_distances = np.sort(distances, axis=1)[:, :self._neighbors_num]
+        return top_neighbors, top_distances
     
 
     def _minkowski_distance(self, features):
@@ -53,8 +55,9 @@ class KNN:
 
 
 class KNNClassifier(KNN):
-    def __init__(self, neighbors_num, p=2, normalize_features=True):
+    def __init__(self, neighbors_num=3, p=2, normalize_features=True, weighted=True):
         super().__init__(neighbors_num, p, normalize_features)
+        self._weighted = weighted
     
 
     def __most_occurent_class(self, top_classes):
@@ -63,8 +66,37 @@ class KNNClassifier(KNN):
         return most_frequent_class_id
 
 
+    def __weighted_prediction(self, targets, distance):
+        unique_classes, counts = np.unique(targets, return_counts=True)
+
+
+
     def predict(self, features):
-        top_neighbors = self._get_top_neighbors(features)
+        top_neighbors, distance = self._get_top_neighbors(features)
         targets = self._target[top_neighbors]
-        prediction = np.apply_along_axis(self.__most_occurent_class, axis=1, arr=targets)
+        print(targets)
+        print(distance)
+        if self._weighted:
+            pass
+        else:
+            prediction = np.apply_along_axis(self.__most_occurent_class, axis=1, arr=targets)
         return prediction
+
+
+
+a = np.array([
+    [1, 2, 3],
+    [4, 5, 7],
+    [1, 0, 3],
+    [12, 12, 10]
+])
+
+
+b = np.array([
+    [1, 2, 3],
+    [10, 10, 12]
+])
+
+knn = KNNClassifier()
+knn.fit(a, np.array([1,2, 1,2]))
+print(knn.predict(b))
